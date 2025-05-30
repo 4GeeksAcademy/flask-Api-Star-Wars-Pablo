@@ -8,8 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
-#from models import Person
+from models import db, User, Character, FavoriteCharacter
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -36,21 +35,23 @@ def handle_invalid_usage(error):
 def sitemap():
     return generate_sitemap(app)
 
+##Renderizado de Usuarios##
+
 @app.route('/user', methods=['GET'])
 def handle_hello():
     users= db.session.query(User).all()
 
-    if users is None:
+    if not users:
         return jsonify({"error": "users not found"}), 404
 
 
     return jsonify([user.serialize() for user in users]), 200
 
-##Renderizado de Usuarios##
+##Renderizado de Usuarios por id##
 
 @app.route('/user/<int:id>', methods=['GET'])
 def getUserById(id):
-    user= User.query.filter_by(id=id).first() ##Primer ID es del "models" y el segundo es el de la consulta (la url)
+    user= User.query.filter_by(id=id).first()
     if not user:
         return jsonify({"error": "user not found"}), 400
     return jsonify({"user": user.serialize()}), 200
@@ -63,16 +64,45 @@ def newUser():
     email = request_body["email"]
     password = request_body["password"]
     if not email or not password:
-        return jsonify ({"msg": "Todos los campos son requeridos"}), 400
+        return jsonify ({"msg": "All fields are required"}), 400
     exist = User.query.filter_by(email=email).first()
     if exist:
-        return jsonify({"msg": "Correo ya utilizado"}), 400
+        return jsonify({"msg": "This email is already in use"}), 400
     new_user = User(email= email, password=password, is_active= True)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"msg": "Usuario creado"}), 201
 
+##Renderizado Character##
+
+##Renderizado Planet##
+
 ##Agregar Character Favorito a Usuarios##
+@app.route('/favorite_character/<int:user_id>', methods=['POST'])
+def addFavoriteCharacter(user_id):
+    request_body = request.get_json()
+    character_id = request_body.get["character_id"]
+
+    if not user_id or not character_id:
+        return ({"msg": "User and Character required"}), 400
+    
+    user = User.query.get(user_id)
+    character = Character.query.get(character_id)
+
+    if not user or not character:
+        return jsonify ({"msg": "User and character not found"}), 404
+    
+    existing_favorite = FavoriteCharacter.query.filter_by(user_id=user_id, character_id=character_id).first()
+    if existing_favorite:
+        return jsonify ({"msg": "Favorite already exists"}), 409
+    
+    new_favorite = FavoriteCharacter(user_id=user_id, character_id=character_id)
+    db.session.add(new_favorite)
+    db.session.commit()
+
+    return jsonify({"msg": "Favorite character added"}), 201
+    
+    
 
 ##Agregar Planet Favorito a Usuarios##
 
