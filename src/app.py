@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User, Character, FavoriteCharacter
+from models import db, User, Character, Planet, FavoriteCharacter, FavoritePlanet
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -75,13 +75,17 @@ def newUser():
 
 ##Renderizado Character##
 
+##Renderizado Character:id##
+
 ##Renderizado Planet##
+
+##Renderizado Planet:id##
 
 ##Agregar Character Favorito a Usuarios##
 @app.route('/favorite_character/<int:user_id>', methods=['POST'])
 def addFavoriteCharacter(user_id):
     request_body = request.get_json()
-    character_id = request_body.get["character_id"]
+    character_id = request_body.get("character_id")
 
     if not user_id or not character_id:
         return ({"msg": "User and Character required"}), 400
@@ -96,8 +100,8 @@ def addFavoriteCharacter(user_id):
     if existing_favorite:
         return jsonify ({"msg": "Favorite already exists"}), 409
     
-    new_favorite = FavoriteCharacter(user_id=user_id, character_id=character_id)
-    db.session.add(new_favorite)
+    new_favorite_character = FavoriteCharacter(user_id=user_id, character_id=character_id)
+    db.session.add(new_favorite_character)
     db.session.commit()
 
     return jsonify({"msg": "Favorite character added"}), 201
@@ -105,6 +109,30 @@ def addFavoriteCharacter(user_id):
     
 
 ##Agregar Planet Favorito a Usuarios##
+
+@app.route('/favorite_planet/<int:user_id>', methods=['POST'])
+def addFavoritePlanet(user_id):
+    request_body = request.get_json()
+    planet_id = request_body.get("planet_id")
+
+    if not user_id or not planet_id:
+        return ({"msg": "User and planet required"}), 400
+    
+    user = User.query.get(user_id)
+    planet = Planet.query.get(planet_id)
+
+    if not user or not planet:
+        return jsonify ({"msg": "User and planet not found"}), 404
+    
+    existing_favorite = FavoritePlanet.query.filter_by(user_id=user_id, planet_id=planet_id).first()
+    if existing_favorite:
+        return jsonify ({"msg": "Favorite already exists"}), 409
+    
+    new_favorite_planet = FavoritePlanet(user_id=user_id, planet_id=planet_id)
+    db.session.add(new_favorite_planet)
+    db.session.commit()
+
+    return jsonify({"msg": "Favorite planet added"}), 201
 
 ##Eliminar Character Favoritos de Usuarios##
 
