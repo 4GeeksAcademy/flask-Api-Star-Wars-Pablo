@@ -75,11 +75,43 @@ def newUser():
 
 ##Renderizado Character##
 
+@app.route('/character', methods=['GET'])
+def getAllCharacters():
+    characters = Character.query.all()
+    if not characters:
+        return jsonify({"msg": "No characters found"}), 404
+    
+    return jsonify([character.serialize() for character in characters]), 200
+
 ##Renderizado Character:id##
+
+@app.route('/character/<int:id>', methods=['GET'])
+def getCharacterId(id):
+    character = Character.query.get(id)
+    if not character:
+        return jsonify({"msg": "No character found"}), 404
+    
+    return jsonify(character.serialize()), 200
 
 ##Renderizado Planet##
 
+@app.route('/planet', methods=['GET'])
+def getAllPlanets():
+    planets = Planet.query.all()
+    if not planets:
+        return jsonify({"msg": "No planets found"}), 404
+    
+    return jsonify([planet.serialize() for planet in planets]), 200
+
 ##Renderizado Planet:id##
+
+@app.route('/planet/<int:id>', methods=['GET'])
+def getPlanetId(id):
+    planet = Planet.query.get(id)
+    if not planet:
+        return jsonify({"msg": "No planet found"}), 404
+    
+    return jsonify(planet.serialize()), 200
 
 ##Agregar Character Favorito a Usuarios##
 @app.route('/favorite_character/<int:user_id>', methods=['POST'])
