@@ -144,17 +144,35 @@ def deleteFavoriteCharacter(user_id):
     if not character_id:
         return jsonify({"msg": "Character ID is required"}), 400
     
-    favorite = FavoriteCharacter.query.filter_by(user_id=user_id, character_id=character_id).first()
+    favorite_character_delete = FavoriteCharacter.query.filter_by(user_id=user_id, character_id=character_id).first()
 
-    if not favorite:
+    if not favorite_character_delete:
         return jsonify({"msg": "Favorite Character not found"}), 404
     
-    db.session.delete(favorite)
+    db.session.delete(favorite_character_delete)
     db.session.commit()
 
     return jsonify({"msg": "deleted successfully"}),200
 
 ##Eliminar Planet Favoritos de Usuarios##
+
+@app.route('/favorite_planet/<int:user_id>', methods=['DELETE'])
+def deleteFavoritePlanet(user_id):
+    request_body = request.get_json()
+    planet_id = request_body.get("planet_id")
+
+    if not planet_id:
+        return jsonify({"msg": "Planet ID is required"}), 400
+    
+    favorite_planet_delete = FavoritePlanet.query.filter_by(user_id=user_id, planet_id=planet_id).first()
+
+    if not favorite_planet_delete:
+        return jsonify({"msg": "Favorite planet not found"}), 404
+    
+    db.session.delete(favorite_planet_delete)
+    db.session.commit()
+
+    return jsonify({"msg": "deleted successfully"}),200
 
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
